@@ -184,7 +184,7 @@ document.getElementById("spinMainWheel").addEventListener("click",()=>{
  let start=-90;
  for(let i=0;i<index;i++)start+=mainWheelEntries[i].weight/wheelTotal*360;
  const center=start+mainWheelEntries[index].weight/wheelTotal*180;
- const extra=(360-(center%360)+360)%360;
+ const extra=(270-(center%360)+360)%360;
  mainWheelRotation+=360*6+extra;
  wheelCanvas.style.transform="rotate("+mainWheelRotation+"deg)";
  const finish=()=>{
