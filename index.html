@@ -63,6 +63,20 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
 }
 
 @media(max-width:560px){.wrap{padding:24px 13px 40px}.panel{padding:17px}.mainrow .btn{width:100%}}
+
+/* Built-in weighted Main Wheel */
+.main-wheel-panel{text-align:center;overflow:hidden}
+.main-wheel-panel .section-head{text-align:left}
+.built-wheel-area{position:relative;width:min(100%,440px);margin:12px auto 8px;aspect-ratio:1}
+#mainWheelCanvas{display:block;width:100%;height:100%;border-radius:50%;filter:drop-shadow(0 0 16px rgba(10,200,185,.2));transform:rotate(0deg);transition:transform 5.2s cubic-bezier(.12,.72,.08,1);will-change:transform}
+.built-wheel-pointer{position:absolute;z-index:2;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-top:34px solid #f0e6d2;filter:drop-shadow(0 2px 5px #000); }
+.wheel-controls{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:12px}
+#spinMainWheel{min-width:min(100%,260px);font-size:.95rem}
+#spinMainWheel:disabled{opacity:.65;cursor:wait;transform:none}
+.wheel-result{font:700 1.25rem Georgia,serif;color:#f0e6d2;min-height:1.7em;text-shadow:0 0 14px rgba(10,200,185,.35)}
+.wheel-weight-note{font-size:.75rem;color:#a09b8c;letter-spacing:.08em;text-transform:uppercase;margin-top:5px}
+@media(max-width:560px){.built-wheel-area{width:min(100%,360px)}.wheel-result{font-size:1.1rem}}
+
 </style>
 </head>
 <body>
@@ -72,6 +86,19 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
   <h1>SUMMONER'S<br>ROULETTE</h1>
   <p>Time to take the wheel. One foot in front of the other.</p>
 </header>
+
+<section class="panel main-wheel-panel">
+  <div class="section-head"><span class="num">1</span><div><h2>Main Wheel</h2><div class="sub">Spin to decide your challenge for this game.</div></div></div>
+  <div class="built-wheel-area">
+    <div class="built-wheel-pointer" aria-hidden="true"></div>
+    <canvas id="mainWheelCanvas" width="600" height="600" role="img" aria-label="Main challenge wheel with six weighted outcomes"></canvas>
+  </div>
+  <div class="wheel-controls">
+    <button class="btn" id="spinMainWheel" type="button">🎡 Spin the Main Wheel</button>
+    <div class="wheel-result" id="mainWheelResult" aria-live="polite">Ready when you are.</div>
+  </div>
+  <div class="wheel-weight-note">Weighted outcomes · The odds match your original Picker Wheel.</div>
+</section>
 
 <section class="panel">
   <div class="mainrow">
@@ -114,6 +141,59 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
 <div class="footer">FUCK ADAM</div>
 </div>
 <script>
+const mainWheelEntries=[
+ {label:"Fun wheel",weight:1.3,color:"#4438c8"},
+ {label:"Jackpot wheel",weight:0.3,color:"#a89a00"},
+ {label:"Codys choice",weight:1,color:"#159b35"},
+ {label:"Adams choice / rules wheel",weight:0.7,color:"#8523a8"},
+ {label:"Adams choice",weight:0.3,color:"#20bcae"},
+ {label:"The low wheel",weight:1.3,color:"#4b2110"}
+];
+const wheelCanvas=document.getElementById("mainWheelCanvas");
+const wheelCtx=wheelCanvas.getContext("2d");
+const wheelTotal=mainWheelEntries.reduce((sum,item)=>sum+item.weight,0);
+function drawMainWheel(){
+ const ctx=wheelCtx,c=300,r=282;
+ ctx.clearRect(0,0,600,600);
+ let angle=-Math.PI/2;
+ mainWheelEntries.forEach((item)=>{
+   const sweep=item.weight/wheelTotal*Math.PI*2;
+   ctx.beginPath();ctx.moveTo(c,c);ctx.arc(c,c,r,angle,angle+sweep);ctx.closePath();
+   ctx.fillStyle=item.color;ctx.fill();ctx.lineWidth=5;ctx.strokeStyle="#d8c18a";ctx.stroke();
+   ctx.save();ctx.translate(c,c);ctx.rotate(angle+sweep/2);
+   ctx.textAlign="right";ctx.textBaseline="middle";ctx.fillStyle="#fff";
+   ctx.shadowColor="#000";ctx.shadowBlur=5;
+   const words=item.label.split(" / ");
+   ctx.font="bold 22px Arial";
+   if(words.length>1){ctx.fillText(words[0],r-24,-12);ctx.fillText(words[1],r-24,14);}
+   else ctx.fillText(item.label,r-24,0);
+   ctx.restore();angle+=sweep;
+ });
+ ctx.beginPath();ctx.arc(c,c,48,0,Math.PI*2);ctx.fillStyle="#071723";ctx.fill();ctx.lineWidth=6;ctx.strokeStyle="#c8aa6e";ctx.stroke();
+ ctx.beginPath();ctx.arc(c,c,12,0,Math.PI*2);ctx.fillStyle="#f0e6d2";ctx.fill();
+}
+drawMainWheel();
+let mainWheelRotation=0,mainWheelBusy=false;
+document.getElementById("spinMainWheel").addEventListener("click",()=>{
+ if(mainWheelBusy)return;
+ mainWheelBusy=true;
+ const button=document.getElementById("spinMainWheel"),result=document.getElementById("mainWheelResult");
+ button.disabled=true;result.textContent="The wheel is spinning...";
+ let pick=Math.random()*wheelTotal,index=0;
+ for(;index<mainWheelEntries.length-1;index++){pick-=mainWheelEntries[index].weight;if(pick<0)break;}
+ let start=-90;
+ for(let i=0;i<index;i++)start+=mainWheelEntries[i].weight/wheelTotal*360;
+ const center=start+mainWheelEntries[index].weight/wheelTotal*180;
+ const extra=(360-(center%360)+360)%360;
+ mainWheelRotation+=360*6+extra;
+ wheelCanvas.style.transform="rotate("+mainWheelRotation+"deg)";
+ const finish=()=>{
+   result.textContent="Result: "+mainWheelEntries[index].label;
+   button.disabled=false;mainWheelBusy=false;
+   wheelCanvas.removeEventListener("transitionend",finish);
+ };
+ wheelCanvas.addEventListener("transitionend",finish);
+});
 const wheels={
  top:{fun:"https://pickerwheel.com/?id=bN6ci",low:"https://pickerwheel.com/?id=Wti79"},
  jungle:{fun:"https://pickerwheel.com/?id=RVjpg",low:"https://pickerwheel.com/?id=X35Nq"},
