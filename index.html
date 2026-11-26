@@ -228,7 +228,7 @@ const nextBox=document.getElementById("flowNext"),instructionBox=document.getEle
 const backButton=document.getElementById("backToMain"),againButton=document.getElementById("spinAgain"),weightNote=document.getElementById("wheelWeightNote");
 let currentEntries=mainEntries,currentRotation=0,busy=false,currentStage="main",pendingKind=null,selectedRole=null;
 function normalizeEntries(items){
- return items.map((item,i)=>Array.isArray(item)?{label:item[0],weight:item[1],color:colors[i%colors.length]}:{label:item,weight:1,color:colors[i%colors.length]});
+ return items.map((item,i)=>Array.isArray(item)?{label:item[0],weight:item[1],color:colors[i%colors.length]}:(typeof item==="object"?{label:item.label,weight:item.weight||1,color:item.color||colors[i%colors.length]}:{label:item,weight:1,color:colors[i%colors.length]}));
 }
 function drawWheel(){
  const c=300,r=282,total=currentEntries.reduce((s,e)=>s+e.weight,0);
@@ -281,7 +281,7 @@ function spin(){
 function setWheel(title,subtitle,entries,buttonText,note){
  currentEntries=normalizeEntries(entries);currentRotation=0;canvas.style.transition="none";canvas.style.transform="rotate(0deg)";
  drawWheel();void canvas.offsetWidth;canvas.style.transition="transform 5.2s cubic-bezier(.12,.72,.08,1)";
- titleBox.textContent=title;subtitleBox.textContent=subtitle;spinButton.textContent=buttonText;
+ titleBox.textContent=title;subtitleBox.textContent=subtitle;spinButton.textContent=buttonText;spinButton.classList.remove("hidden");
  resultBox.textContent="Ready when you are.";weightNote.textContent=note||"";
  spinButton.disabled=false;nextBox.classList.add("hidden");backButton.classList.remove("hidden");againButton.classList.add("hidden");
  currentStage="wheel";
