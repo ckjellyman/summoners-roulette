@@ -322,6 +322,18 @@ document.querySelectorAll("#flowRoles .role").forEach(btn=>btn.addEventListener(
 backButton.addEventListener("click",goMain);
 againButton.addEventListener("click",goMain);
 drawWheel();
+const pickerLinks={
+ top:{fun:"https://pickerwheel.com/?id=bN6ci",low:"https://pickerwheel.com/?id=Wti79"},
+ jungle:{fun:"https://pickerwheel.com/?id=RVjpg",low:"https://pickerwheel.com/?id=X35Nq"},
+ mid:{fun:"https://pickerwheel.com/?id=mDCN9",low:"https://pickerwheel.com/?id=rUfuc"},
+ adc:{fun:"https://pickerwheel.com/?id=n5RzF",low:"https://pickerwheel.com/?id=ygeVx"},
+ support:{fun:"https://pickerwheel.com/?id=AGsvT",low:"https://pickerwheel.com/?id=qFfCk"}
+};
+document.querySelectorAll("#roles .role").forEach(btn=>btn.addEventListener("click",()=>{
+ const links=pickerLinks[btn.dataset.role];
+ document.getElementById("funLink").href=links.fun;
+ document.getElementById("lowLink").href=links.low;
+}));
 </script>
 </body>
 </html>
