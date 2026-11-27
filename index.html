@@ -98,7 +98,7 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
 .legacy-links .panel{margin:14px 0}
 @media(max-width:560px){.built-wheel-area{width:min(100%,360px)}.wheel-result{font-size:1.1rem}}
 
- .player-picker{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 18px}.player-picker label{color:#c8aa6e;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.8rem}.player-picker select{min-width:180px;padding:10px 14px;background:#0b2638;color:#f0e6d2;border:1px solid #c8aa6e;border-radius:2px;font:inherit;font-weight:700}.player-picker select:focus{outline:2px solid #0ac8b9;outline-offset:2px}
+ .session-controls{display:flex;flex-direction:column;align-items:center;gap:7px;margin:4px 0 18px}.player-picker{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 5px}.player-picker label{color:#c8aa6e;font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:.8rem}.player-picker select{min-width:180px;padding:10px 14px;background:#0b2638;color:#f0e6d2;border:1px solid #c8aa6e;border-radius:2px;font:inherit;font-weight:700}.player-picker select:focus{outline:2px solid #0ac8b9;outline-offset:2px}.session-status{color:#c8aa6e;font-size:.82rem;font-weight:800;letter-spacing:.04em}.session-controls #newSession{margin-top:3px}
 </style>
 </head>
 <body>
@@ -111,7 +111,12 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
 
 <section class="panel flow-panel" id="wheelFlow">
   <div class="section-head"><span class="num" id="flowStep">1</span><div><h2 id="flowTitle">Main Wheel</h2><div class="sub" id="flowSubtitle">Spin to decide your challenge for this game.</div></div></div>
-  <div class="player-picker"><label for="playerSelect">Who is playing?</label><select id="playerSelect"><option value="adam">Adam</option><option value="cody">Cody</option><option value="matt">Matt</option></select></div>
+  <div class="session-controls">
+    <div class="player-picker"><label for="playerSelect">Who is playing?</label><select id="playerSelect"><option value="adam">Adam</option><option value="cody">Cody</option><option value="matt">Matt</option></select></div>
+    <div class="player-picker"><label for="difficultySelect">Difficulty · Rerolls</label><select id="difficultySelect"><option value="3">Easy · 3 rerolls</option><option value="5" selected>Normal · 5 rerolls</option><option value="7">Hard · 7 rerolls</option></select></div>
+    <div class="session-status" id="sessionStatus">Adam · 5 rerolls remaining</div>
+    <button class="btn secondary small" id="newSession" type="button">↻ New Session</button>
+  </div>
   <div class="built-wheel-area">
     <div class="built-wheel-pointer" aria-hidden="true"></div>
     <canvas id="activeWheelCanvas" width="600" height="600" role="img" aria-label="Interactive roulette wheel"></canvas>
@@ -134,6 +139,7 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
   <div class="flow-actions">
     <button class="btn secondary small hidden" id="backToMain" type="button">↶ Back to Main Wheel</button>
     <button class="btn secondary small hidden" id="spinAgain" type="button">Spin Again</button>
+    <button class="btn secondary small hidden" id="useReroll" type="button">↻ Use Reroll</button>
   </div>
 </section>
 
@@ -246,6 +252,20 @@ const titleBox=document.getElementById("flowTitle"),subtitleBox=document.getElem
 const nextBox=document.getElementById("flowNext"),instructionBox=document.getElementById("flowInstruction");
 const backButton=document.getElementById("backToMain"),againButton=document.getElementById("spinAgain"),weightNote=document.getElementById("wheelWeightNote");
 let currentPlayer="adam",currentEntries=mainEntries,currentRotation=0,busy=false,currentStage="main",pendingKind=null,selectedRole=null;
+let currentWheelKind=null,currentWheelRole=null,currentWheelBase=[];
+let maxRerolls=5;
+const sessions=Object.fromEntries(["adam","cody","matt"].map(p=>[p,{rerollsLeft:5,used:{fun:[],low:[]}}]));
+const rerollButton=document.getElementById("useReroll");
+const sessionStatus=document.getElementById("sessionStatus");
+function refreshSessionStatus(){
+ const data=sessions[currentPlayer];
+ sessionStatus.textContent=playerNames[currentPlayer]+" · "+data.rerollsLeft+" reroll"+(data.rerollsLeft===1?"":"s")+" remaining";
+}
+const playerNames={adam:"Adam",cody:"Cody",matt:"Matt"};
+function resetSessions(){
+ for(const p of Object.keys(sessions)){sessions[p]={rerollsLeft:maxRerolls,used:{fun:[],low:[]}};}
+ refreshSessionStatus();
+}
 const playerChoiceLabels=()=>currentPlayer==="adam"?{choice:"Adam’s Choice",other:"Cody’s Choice"}:currentPlayer==="cody"?{choice:"Cody’s Choice",other:"Matt’s Choice"}:{choice:"Matt’s Choice",other:"Adam’s Choice"};
 const getMainEntries=()=>mainEntries.map(e=>({...e,label:e.id==="choice"?playerChoiceLabels().other:e.id==="choiceRules"?playerChoiceLabels().choice+" / Rules Wheel":e.id==="choiceAlt"?playerChoiceLabels().choice:e.label}));
 const championColors={
@@ -300,7 +320,7 @@ function chooseWeighted(){
  return currentEntries.length-1;
 }
 function spin(){
- if(busy)return;
+ if(busy||!currentEntries.length)return;
  busy=true;spinButton.disabled=true;resultBox.textContent="The wheel is spinning...";
  const index=chooseWeighted(),total=currentEntries.reduce((s,e)=>s+e.weight,0);
  const before=currentEntries.slice(0,index).reduce((s,e)=>s+e.weight,0);
@@ -314,17 +334,32 @@ function spin(){
   const chosen=currentEntries[index];
   resultBox.textContent="Result: "+chosen.label;
   spinButton.disabled=false;busy=false;canvas.removeEventListener("transitionend",finish);
+  if(currentWheelKind){
+   const used=sessions[currentPlayer].used[currentWheelKind];
+   if(!used.includes(chosen.label))used.push(chosen.label);
+   currentEntries=normalizeEntries(currentWheelBase.filter(item=>!used.includes(Array.isArray(item)?item[0]:item)));
+   currentRotation=0;canvas.style.transition="none";canvas.style.transform="rotate(0deg)";drawWheel();void canvas.offsetWidth;canvas.style.transition="transform 5.2s cubic-bezier(.12,.72,.08,1)";
+   spinButton.classList.add("hidden");
+   rerollButton.classList.toggle("hidden",sessions[currentPlayer].rerollsLeft<=0||currentEntries.length===0);
+   rerollButton.textContent="↻ Use Reroll ("+sessions[currentPlayer].rerollsLeft+" left)";
+   weightNote.textContent="This result is locked in for this session · Used results are removed from future spins.";
+   refreshSessionStatus();
+  }
   handleResult(chosen.label);
  };
  canvas.addEventListener("transitionend",finish);
 }
-function setWheel(title,subtitle,entries,buttonText,note){
- currentEntries=normalizeEntries(entries);currentRotation=0;canvas.style.transition="none";canvas.style.transform="rotate(0deg)";
+function setWheel(title,subtitle,entries,buttonText,note,kind=null,role=null){
+ currentWheelKind=kind;currentWheelRole=role;currentWheelBase=entries.slice();
+ const used=kind?sessions[currentPlayer].used[kind]:[];
+ const available=kind?entries.filter(item=>!used.includes(Array.isArray(item)?item[0]:item)):entries;
+ currentEntries=normalizeEntries(available);currentRotation=0;canvas.style.transition="none";canvas.style.transform="rotate(0deg)";
  drawWheel();void canvas.offsetWidth;canvas.style.transition="transform 5.2s cubic-bezier(.12,.72,.08,1)";
  titleBox.textContent=title;subtitleBox.textContent=subtitle;spinButton.textContent=buttonText;spinButton.classList.remove("hidden");
- resultBox.textContent="Ready when you are.";weightNote.textContent=note||"";
- spinButton.disabled=false;nextBox.classList.add("hidden");backButton.classList.remove("hidden");againButton.classList.add("hidden");
- currentStage="wheel";
+ resultBox.textContent=available.length?"Ready when you are.":"All results on this wheel have already been used this session.";
+ weightNote.textContent=note||"";
+ spinButton.disabled=!available.length;nextBox.classList.add("hidden");backButton.classList.remove("hidden");againButton.classList.add("hidden");rerollButton.classList.add("hidden");
+ currentStage="wheel";refreshSessionStatus();
 }
 function showRoleChoice(kind){
  pendingKind=kind;currentStage="role";stepBox.textContent="2";titleBox.textContent=kind==="fun"?"Choose Your Role · Fun Builds":"Choose Your Role · Low Mastery";
@@ -344,22 +379,25 @@ function handleResult(label){
  backButton.classList.remove("hidden");
 }
 function goMain(){
- currentStage="main";pendingKind=null;selectedRole=null;currentEntries=normalizeEntries(getMainEntries());currentRotation=0;
+ currentStage="main";pendingKind=null;selectedRole=null;currentWheelKind=null;currentWheelRole=null;currentWheelBase=[];rerollButton.classList.add("hidden");currentEntries=normalizeEntries(getMainEntries());currentRotation=0;
  canvas.style.transition="none";canvas.style.transform="rotate(0deg)";drawWheel();void canvas.offsetWidth;canvas.style.transition="transform 5.2s cubic-bezier(.12,.72,.08,1)";
  titleBox.textContent="Main Wheel";subtitleBox.textContent="Spin to decide your challenge for this game.";stepBox.textContent="1";
  spinButton.classList.remove("hidden");spinButton.disabled=false;spinButton.textContent="🎡 Spin the Main Wheel";
  resultBox.textContent="Ready when you are.";weightNote.textContent="Weighted outcomes · Original Main Wheel odds preserved.";
  nextBox.classList.add("hidden");backButton.classList.add("hidden");againButton.classList.add("hidden");
 }
-document.getElementById("playerSelect").addEventListener("change",e=>{currentPlayer=e.target.value;goMain();});
-currentEntries=normalizeEntries(getMainEntries());drawWheel();
+document.getElementById("playerSelect").addEventListener("change",e=>{currentPlayer=e.target.value;goMain();refreshSessionStatus();});
+document.getElementById("difficultySelect").addEventListener("change",e=>{maxRerolls=Number(e.target.value);resetSessions();goMain();resultBox.textContent="Difficulty changed · New session started.";});
+document.getElementById("newSession").addEventListener("click",()=>{resetSessions();goMain();resultBox.textContent="New session started · All rerolls and used results reset.";});
+rerollButton.addEventListener("click",()=>{const data=sessions[currentPlayer];if(busy||data.rerollsLeft<=0||!currentEntries.length)return;data.rerollsLeft--;refreshSessionStatus();rerollButton.classList.add("hidden");spinButton.classList.remove("hidden");spinButton.disabled=false;spin();});
+currentEntries=normalizeEntries(getMainEntries());drawWheel();refreshSessionStatus();
 spinButton.addEventListener("click",spin);
 document.querySelectorAll("#flowRoles .role").forEach(btn=>btn.addEventListener("click",()=>{
  selectedRole=btn.dataset.role;
  document.querySelectorAll("#flowRoles .role").forEach(b=>b.classList.toggle("active",b===btn));
  const kind=pendingKind,role=selectedRole;
  const entries=kind==="fun"?wheelData.fun[role]:playerLow[currentPlayer][role];
- setWheel(roleNames[role]+" · "+(kind==="fun"?"Fun Builds":"Low Mastery"),"Spin for your "+roleNames[role]+" "+(kind==="fun"?"fun build":"low mastery champion")+".",entries,"🎡 Spin "+(kind==="fun"?"Fun Builds":"Low Mastery"),kind==="low"?"Weighted champion odds · Lower mastery champions have higher weights.":"Fun Builds · Equal odds for every entry.");
+ setWheel(roleNames[role]+" · "+(kind==="fun"?"Fun Builds":"Low Mastery"),"Spin for your "+roleNames[role]+" "+(kind==="fun"?"fun build":"low mastery champion")+".",entries,"🎡 Spin "+(kind==="fun"?"Fun Builds":"Low Mastery"),kind==="low"?"Weighted champion odds · Lower mastery champions have higher weights.":"Fun Builds · Equal odds for every entry.",kind,role);
 }));
 backButton.addEventListener("click",goMain);
 againButton.addEventListener("click",goMain);
