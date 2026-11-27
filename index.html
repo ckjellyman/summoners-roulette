@@ -227,8 +227,27 @@ const titleBox=document.getElementById("flowTitle"),subtitleBox=document.getElem
 const nextBox=document.getElementById("flowNext"),instructionBox=document.getElementById("flowInstruction");
 const backButton=document.getElementById("backToMain"),againButton=document.getElementById("spinAgain"),weightNote=document.getElementById("wheelWeightNote");
 let currentEntries=mainEntries,currentRotation=0,busy=false,currentStage="main",pendingKind=null,selectedRole=null;
+const championColors={
+ "Pantheon":"#b96b35","Fiddle":"#344c35","Karma":"#36a58b","Nasus":"#b28a42","Lulu":"#b36bd1","Thresh":"#38a58b","Gangplank":"#c87932","Mordekaiser":"#633a9b","Skarner":"#8050c8","Nidalee":"#c99b52","Lee Sin":"#d58a43","Fizz":"#39b8c4","Teemo":"#75a84b","Tahm":"#477c62","Illaoi":"#258d83","Trynd":"#b84c46","Bard":"#d5a84c","Olaf":"#6d9fca",
+ "Shen":"#478c9d","Twitch":"#80a64b","Malphite":"#8a929b","Gnar":"#c77a45","Briar":"#b9324a","Daisy":"#5c9a5a","Kha'Zix":"#7650a8","Elise":"#a83f4b","Sylas":"#4f8fbd","Nuclear Bear":"#b97842","Volibear":"#6f9fc9","Rammus":"#b98a43","Zac":"#5da65a","Warwick":"#598c56","Sion":"#a63b3b",
+ "Galio":"#a8c4ce","Azir":"#d0a83e","Ryze":"#397ac0","Ezreal":"#e0b83f","Ahri":"#d77cae","Irelia":"#b9b9c8","Akshan":"#4b9a73","Kog'Maw":"#8a9b53","Vi":"#c45a86","Xin Zhao":"#b94d43","Trundle":"#6489bd","Ashe":"#8ec8e8","Jhin":"#a64c52","Morgana":"#70439c","Yone":"#b84c54","LeBlanc":"#7654a6","Wukong":"#b97843",
+ "Vayne":"#554b77","Jinx":"#5687c7","Kai'Sa":"#8260a8","Kalista":"#4c8f9c","Yasuo":"#6b9eae","Twisted Fate":"#a74c4c","Varus":"#8a5caa","Riven":"#6e9c82","Jayce":"#b98b52","Sett":"#b63b42","Amumu":"#76a85b","Pyke":"#3e8792","Brand":"#d85b32","Miss Fortune":"#bd4b4b","Leona":"#d5a84c","Nautilus":"#648fa8","Sona":"#6c8fd0","Maokai":"#62834a","Alistar":"#9b765c","Senna":"#a5a9b5","Blitzcrank":"#d0aa43","Jarvan":"#b58a43",
+ "Zaahen":"#8c4e9b","Heimerdinger":"#d19a43","Kled":"#a64c3e","Kennen":"#c77b4b","K'Sante":"#b58c4a","Singed":"#6e9c62","Rumble":"#c45b36","Mundo":"#8a65ad","Rek'Sai":"#8b6b9c","Nunu":"#79b9df","Ivern":"#65a96b","Udyr":"#9a744d","Shyvana":"#a64b4b","Shaco":"#86529b","Bel'Veth":"#8a5ca9","Kassadin":"#6c5db1","Lissandra":"#8db9e2","Cassiopeia":"#4b9b91","Locke":"#397fc4","Neeko":"#55a66d","Aurelion Sol":"#4c85bf","Vex":"#65748e","Orianna":"#b4a9c7","Anivia":"#83c9eb","Tristana":"#8b72c9","Nilah":"#5a9dba","Aphelios":"#7482bc","Sivir":"#c79b45","Corki":"#b97843","Draven":"#bd5555","Milio":"#d69a4e","Taric":"#6c9ed0","Janna":"#a4cbe5","Zilean":"#b58b53","Braum":"#6f9fc1","Mel":"#9a6ac5"
+};
+function championColor(label,fallback){
+ const aliases=[
+  ["Mordekaiser","Morde"],["Gangplank","Tankplank"],["Volibear","Nuclear Bear"],["Miss Fortune","MF"],["Kha'Zix","Kha'Zix"],["Kai'Sa","Kai'Sa"],["Twisted Fate","Twisted Fate"],["Xin Zhao","Xin Zhao"],["Lee Sin","Lee Sin"],["Kog'Maw","Kog'Maw"],["Aurelion Sol","Aurelion Sol"],["Bel'Veth","Bel'Veth"],["Rek'Sai","Rek'Sai"],["K'Sante","K'Sante"],["Kennen","Kennen"],["Pantheon","Pantheon"],["Mordekaiser","Mordekaiser"]
+ ];
+ for(const [name,token] of aliases){if(label.toLowerCase().includes(token.toLowerCase()))return championColors[name];}
+ const names=Object.keys(championColors).sort((a,b)=>b.length-a.length);
+ for(const name of names){if(label.toLowerCase().includes(name.toLowerCase()))return championColors[name];}
+ return fallback;
+}
 function normalizeEntries(items){
- return items.map((item,i)=>Array.isArray(item)?{label:item[0],weight:item[1],color:colors[i%colors.length]}:(typeof item==="object"?{label:item.label,weight:item.weight||1,color:item.color||colors[i%colors.length]}:{label:item,weight:1,color:colors[i%colors.length]}));
+ return items.map((item,i)=>{
+  const raw=Array.isArray(item)?{label:item[0],weight:item[1]}:(typeof item==="object"?{label:item.label,weight:item.weight||1}:{label:item,weight:1});
+  return {...raw,color:raw.color||championColor(raw.label,colors[i%colors.length])};
+ });
 }
 function drawWheel(){
  const c=300,r=282,total=currentEntries.reduce((s,e)=>s+e.weight,0);
