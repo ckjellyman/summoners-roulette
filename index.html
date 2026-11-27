@@ -187,7 +187,7 @@ const mainEntries=[
 ];
 const wheelData={
  fun:{
-  top:["Mathematically Correct Pantheon","Tank / Norm Fiddle","Grasp Karma","AP / Big A Nasus","On Hit Lulu","AD/AP Thresh","Tankplank","AP / Full Shred / Heal Morde for the End","AP Skarner","AD Nidalee","Heal Lee Sin","AD Fizz","AD / Slow / Tank HS Teemo","AP Tahm","Lethality Illaoi","AP Trynd","On Hit Bard","Crit Olaf"],
+  top:["Mathematically Correct Pantheon","Tank / Norm Fiddle","Grasp Karma","4 Cull Urgot","AP / Big A Nasus","On Hit Lulu","AD/AP Thresh","Tankplank","AP / Full Shred / Heal Morde for the End","AP Skarner","AD Nidalee","Heal Lee Sin","AD Fizz","AD / Slow / Tank HS Teemo","AP Tahm","Lethality Illaoi","AP Trynd","On Hit Bard","Crit Olaf"],
   jungle:["Fizz","Bad AP or Good AP Shen","Twitch","AP Malphite","AP Gnar","AP Briar","On Hit Daisy","Mosquito Kha'Zix","Elise Big Autos","AD Sylas","Nuclear Bear","AP Rammus","AD Skarner","AP Zac","Mathematically Correct Warwick","Lethality Sion"],
   mid:["Full AP Galio","Tank Azir","Triple Tear Ryze","AP Ezreal","AD Ahri","AP Irelia","AP Akshan","AP Kog'Maw","Lethality Vi","AP Xin Zhao","Heal Trundle","AP Ashe","Lethality Jhin","Tank Morgana","Lethality Yone","AD LeBlanc","Lethality / AP Wukong"],
   adc:["Lethality Vayne","Lethality Jinx","Chinese AP Kai'Sa","AP-ish Kalista","Any Mage Bot","Yasuo","AD Twisted Fate","Lethality Ashe","AP Varus","The Fast Jhin","Mathematically Correct Jhin","Riven","Crit Jayce"],
@@ -228,7 +228,7 @@ const nextBox=document.getElementById("flowNext"),instructionBox=document.getEle
 const backButton=document.getElementById("backToMain"),againButton=document.getElementById("spinAgain"),weightNote=document.getElementById("wheelWeightNote");
 let currentEntries=mainEntries,currentRotation=0,busy=false,currentStage="main",pendingKind=null,selectedRole=null;
 const championColors={
- "Pantheon":"#b96b35","Fiddle":"#344c35","Karma":"#36a58b","Nasus":"#b28a42","Lulu":"#b36bd1","Thresh":"#38a58b","Gangplank":"#c87932","Mordekaiser":"#633a9b","Skarner":"#8050c8","Nidalee":"#c99b52","Lee Sin":"#d58a43","Fizz":"#39b8c4","Teemo":"#75a84b","Tahm":"#477c62","Illaoi":"#258d83","Trynd":"#b84c46","Bard":"#d5a84c","Olaf":"#6d9fca",
+ "Urgot":"#8b8c75","Pantheon":"#b96b35","Fiddle":"#344c35","Karma":"#36a58b","Nasus":"#b28a42","Lulu":"#b36bd1","Thresh":"#38a58b","Gangplank":"#c87932","Mordekaiser":"#633a9b","Skarner":"#8050c8","Nidalee":"#c99b52","Lee Sin":"#d58a43","Fizz":"#39b8c4","Teemo":"#75a84b","Tahm":"#477c62","Illaoi":"#258d83","Trynd":"#b84c46","Bard":"#d5a84c","Olaf":"#6d9fca",
  "Shen":"#478c9d","Twitch":"#80a64b","Malphite":"#8a929b","Gnar":"#c77a45","Briar":"#b9324a","Daisy":"#5c9a5a","Kha'Zix":"#7650a8","Elise":"#a83f4b","Sylas":"#4f8fbd","Nuclear Bear":"#b97842","Volibear":"#6f9fc9","Rammus":"#b98a43","Zac":"#5da65a","Warwick":"#598c56","Sion":"#a63b3b",
  "Galio":"#a8c4ce","Azir":"#d0a83e","Ryze":"#397ac0","Ezreal":"#e0b83f","Ahri":"#d77cae","Irelia":"#b9b9c8","Akshan":"#4b9a73","Kog'Maw":"#8a9b53","Vi":"#c45a86","Xin Zhao":"#b94d43","Trundle":"#6489bd","Ashe":"#8ec8e8","Jhin":"#a64c52","Morgana":"#70439c","Yone":"#b84c54","LeBlanc":"#7654a6","Wukong":"#b97843",
  "Vayne":"#554b77","Jinx":"#5687c7","Kai'Sa":"#8260a8","Kalista":"#4c8f9c","Yasuo":"#6b9eae","Twisted Fate":"#a74c4c","Varus":"#8a5caa","Riven":"#6e9c82","Jayce":"#b98b52","Sett":"#b63b42","Amumu":"#76a85b","Pyke":"#3e8792","Brand":"#d85b32","Miss Fortune":"#bd4b4b","Leona":"#d5a84c","Nautilus":"#648fa8","Sona":"#6c8fd0","Maokai":"#62834a","Alistar":"#9b765c","Senna":"#a5a9b5","Blitzcrank":"#d0aa43","Jarvan":"#b58a43",
