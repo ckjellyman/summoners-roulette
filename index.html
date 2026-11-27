@@ -368,12 +368,16 @@ function showRoleChoice(kind){
  document.querySelectorAll("#flowRoles .role").forEach(b=>b.classList.remove("active"));
  backButton.classList.remove("hidden");againButton.classList.add("hidden");
 }
+function rulesForPlayer(){
+ const runeRules=currentPlayer==="adam"?["Matt picks runes","Cody picks runes"]:currentPlayer==="cody"?["Adam picks runes","Matt picks runes"]:["Adam picks runes","Cody picks runes"];
+ return rules.filter(rule=>!["Matt picks runes","Cody picks runes","Adam picks runes"].includes(rule)).concat(runeRules);
+}
 function handleResult(label){
  if(currentStage!=="main")return;
  if(label==="Fun wheel"){showRoleChoice("fun");return;}
  if(label==="The low wheel"){showRoleChoice("low");return;}
  if(label==="Jackpot wheel"){setWheel("Jackpot Wheel","A jackpot champion is waiting.",jackpot,"💎 Spin Jackpot","Weighted odds · Rumble is currently the most likely.");return;}
- if(label.endsWith(" / Rules Wheel")){setWheel("Rules Wheel","Spin for the special rule.",rules,"📜 Spin Rules","15 possible rules · Equal odds.");return;}
+ if(label.endsWith(" / Rules Wheel")){setWheel("Rules Wheel","Spin for the special rule.",rulesForPlayer(),"📜 Spin Rules","15 possible rules · Equal odds.");return;}
  spinButton.classList.add("hidden");againButton.classList.remove("hidden");resultBox.textContent="Result: "+label;
  subtitleBox.textContent=label+" gets to choose this game.";
  backButton.classList.remove("hidden");
