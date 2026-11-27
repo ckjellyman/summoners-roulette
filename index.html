@@ -320,9 +320,35 @@ function chooseWeighted(){
  for(let i=0;i<currentEntries.length;i++){pick-=currentEntries[i].weight;if(pick<0)return i;}
  return currentEntries.length-1;
 }
+let wheelAudioContext=null;
+function playWheelTicks(){
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  if(!wheelAudioContext)wheelAudioContext=new AudioCtx();
+  const audio=wheelAudioContext;
+  if(audio.state==="suspended")audio.resume();
+  const start=audio.currentTime+0.04;
+  let elapsed=0;
+  for(let i=0;i<=40;i++){
+   const at=start+elapsed;
+   const oscillator=audio.createOscillator();
+   const gain=audio.createGain();
+   oscillator.type="square";
+   oscillator.frequency.setValueAtTime(1050-(i*4),at);
+   gain.gain.setValueAtTime(0.0001,at);
+   gain.gain.exponentialRampToValueAtTime(0.075,at+0.002);
+   gain.gain.exponentialRampToValueAtTime(0.0001,at+0.028);
+   oscillator.connect(gain);gain.connect(audio.destination);
+   oscillator.start(at);oscillator.stop(at+0.03);
+   if(i<40)elapsed+=0.04+(0.18*i/39);
+  }
+ }catch(error){/* Sound is optional; the wheel still spins if audio is unavailable. */}
+}
 function spin(){
  if(busy||!currentEntries.length)return;
- busy=true;spinButton.disabled=true;resultBox.textContent="The wheel is spinning...";
+ busy=true;
+ playWheelTicks();spinButton.disabled=true;resultBox.textContent="The wheel is spinning...";
  const index=chooseWeighted(),total=currentEntries.reduce((s,e)=>s+e.weight,0);
  const before=currentEntries.slice(0,index).reduce((s,e)=>s+e.weight,0);
  const target=((before+currentEntries[index].weight/2)/total)*360;
