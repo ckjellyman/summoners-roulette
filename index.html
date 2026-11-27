@@ -252,7 +252,7 @@ const titleBox=document.getElementById("flowTitle"),subtitleBox=document.getElem
 const nextBox=document.getElementById("flowNext"),instructionBox=document.getElementById("flowInstruction");
 const backButton=document.getElementById("backToMain"),againButton=document.getElementById("spinAgain"),weightNote=document.getElementById("wheelWeightNote");
 let currentPlayer="adam",currentEntries=mainEntries,currentRotation=0,busy=false,currentStage="main",pendingKind=null,selectedRole=null;
-let currentWheelKind=null,currentWheelRole=null,currentWheelBase=[];
+let currentWheelKind=null,currentWheelRole=null,currentWheelBase=[],lastRolledLabel=null;
 let maxRerolls=5;
 const sessions=Object.fromEntries(["adam","cody","matt"].map(p=>[p,{rerollsLeft:5,used:{fun:[],low:[]}}]));
 const rerollButton=document.getElementById("useReroll");
@@ -338,6 +338,7 @@ function spin(){
   if(currentWheelKind){
    const used=sessions[currentPlayer].used[currentWheelKind];
    if(!used.includes(chosen.label))used.push(chosen.label);
+   lastRolledLabel=chosen.label;
    currentEntries=normalizeEntries(currentWheelBase.filter(item=>!used.includes(Array.isArray(item)?item[0]:item)));
    currentRotation=0;canvas.style.transition="none";canvas.style.transform="rotate(0deg)";drawWheel();void canvas.offsetWidth;canvas.style.transition="transform 5.2s cubic-bezier(.12,.72,.08,1)";
    spinButton.classList.add("hidden");
@@ -394,7 +395,9 @@ function goMain(){
 document.getElementById("playerSelect").addEventListener("change",e=>{currentPlayer=e.target.value;goMain();refreshSessionStatus();});
 document.getElementById("difficultySelect").addEventListener("change",e=>{maxRerolls=Number(e.target.value);resetSessions();goMain();resultBox.textContent="Difficulty changed · New session started.";});
 document.getElementById("newSession").addEventListener("click",()=>{resetSessions();goMain();resultBox.textContent="New session started · All rerolls and used results reset.";});
-rerollButton.addEventListener("click",()=>{const data=sessions[currentPlayer];if(busy||data.rerollsLeft<=0||!currentEntries.length)return;data.rerollsLeft--;refreshSessionStatus();rerollButton.classList.add("hidden");spinButton.classList.remove("hidden");spinButton.disabled=false;spin();});
+rerollButton.addEventListener("click",()=>{const data=sessions[currentPlayer];if(busy||data.rerollsLeft<=0||!currentEntries.length)return;
+ if(currentWheelKind&&lastRolledLabel){data.used[currentWheelKind]=data.used[currentWheelKind].filter(name=>name!==lastRolledLabel);lastRolledLabel=null;currentEntries=normalizeEntries(currentWheelBase.filter(item=>!data.used[currentWheelKind].includes(Array.isArray(item)?item[0]:item)));currentRotation=0;canvas.style.transition="none";canvas.style.transform="rotate(0deg)";drawWheel();void canvas.offsetWidth;canvas.style.transition="transform 5.2s cubic-bezier(.12,.72,.08,1)";}
+ data.rerollsLeft--;refreshSessionStatus();rerollButton.classList.add("hidden");spinButton.classList.remove("hidden");spinButton.disabled=false;spin();});
 currentEntries=normalizeEntries(getMainEntries());drawWheel();refreshSessionStatus();
 spinButton.addEventListener("click",spin);
 document.querySelectorAll("#flowRoles .role").forEach(btn=>btn.addEventListener("click",()=>{
