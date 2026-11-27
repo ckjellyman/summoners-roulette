@@ -254,7 +254,8 @@ const rules=[
  "Use the third rune page",
  "One of your first 3 items has to be on support page",
  "Type in all chat every couple minutes",
- "Ping the jungler every 2 minutes"
+ "Ping the jungler every 2 minutes",
+ "Play with the map at max scale"
 ];
 const jackpot=[["Ezreal",0.6],["Rumble",3],["Mel",1]];
 const roleNames={top:"Top",jungle:"Jungle",mid:"Mid",adc:"ADC",support:"Support"};
@@ -419,7 +420,7 @@ function handleResult(label){
  if(label==="Fun wheel"){showRoleChoice("fun");return;}
  if(label==="The low wheel"){showRoleChoice("low");return;}
  if(label==="Jackpot wheel"){setWheel("Jackpot Wheel","A jackpot champion is waiting.",jackpot,"💎 Spin Jackpot","Weighted odds · Rumble is currently the most likely.");return;}
- if(label.endsWith(" / Rules Wheel")){setWheel("Rules Wheel","Spin for the special rule.",rulesForPlayer(),"📜 Spin Rules","15 possible rules · Equal odds.");return;}
+ if(label.endsWith(" / Rules Wheel")){setWheel("Rules Wheel","Spin for the special rule.",rulesForPlayer(),"📜 Spin Rules","16 possible rules · Equal odds.");return;}
  spinButton.classList.add("hidden");againButton.classList.remove("hidden");resultBox.textContent="Result: "+label;
  subtitleBox.textContent=label+" gets to choose this game.";
  backButton.classList.remove("hidden");
