@@ -63,6 +63,12 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
 }
 
 @media(max-width:560px){.wrap{padding:24px 13px 40px}.panel{padding:17px}.mainrow .btn{width:100%}}
+.surprise-overlay{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.78);backdrop-filter:blur(5px)}
+.surprise-card{width:min(100%,390px);padding:30px 24px;text-align:center;background:linear-gradient(145deg,#173b4a,#091b2a);border:2px solid #c8aa6e;box-shadow:0 0 35px rgba(10,200,185,.35),0 20px 60px #000b;color:#f0e6d2;animation:surprisePop .35s cubic-bezier(.2,.9,.3,1.25)}
+.surprise-card .surprise-emoji{font-size:2.8rem;margin-bottom:8px}
+.surprise-card h2{font:700 1.8rem Georgia,serif;margin:0 0 20px;color:#f0e6d2}
+@keyframes surprisePop{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
+
 
 /* Built-in weighted Main Wheel */
 .main-wheel-panel{text-align:center;overflow:hidden}
@@ -183,6 +189,13 @@ body{background:radial-gradient(ellipse at 50% -20%,#16445a 0%,#0a1d2b 38%,#010a
 </section>
 </details></section>
 <div class="footer">FUCK ADAM</div>
+</div>
+<div class="surprise-overlay hidden" id="surprisePopup" role="dialog" aria-modal="true" aria-labelledby="surpriseMessage">
+ <div class="surprise-card">
+  <div class="surprise-emoji">🎉🎊✨</div>
+  <h2 id="surpriseMessage">You're gay!</h2>
+  <button class="btn" id="closeSurprise" type="button">Let's go</button>
+ </div>
 </div>
 <script>
 const mainEntries=[
@@ -360,6 +373,7 @@ function spin(){
  const finish=()=>{
   const chosen=currentEntries[index];
   resultBox.textContent="Result: "+chosen.label;
+  if(currentStage==="main"&&!currentWheelKind&&Math.random()<0.01)document.getElementById("surprisePopup").classList.remove("hidden");
   spinButton.disabled=false;busy=false;canvas.removeEventListener("transitionend",finish);
   if(currentWheelKind){
    const used=sessions[currentPlayer].used[currentWheelKind];
@@ -436,6 +450,7 @@ document.querySelectorAll("#flowRoles .role").forEach(btn=>btn.addEventListener(
 backButton.addEventListener("click",goMain);
 againButton.addEventListener("click",goMain);
 drawWheel();
+document.getElementById("closeSurprise").addEventListener("click",()=>document.getElementById("surprisePopup").classList.add("hidden"));
 const pickerLinks={
  top:{fun:"https://pickerwheel.com/?id=bN6ci",low:"https://pickerwheel.com/?id=Wti79"},
  jungle:{fun:"https://pickerwheel.com/?id=RVjpg",low:"https://pickerwheel.com/?id=X35Nq"},
